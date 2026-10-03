@@ -1,0 +1,139 @@
+-- KIRO SPEED GUI
+-- For your own Roblox game
+
+local Players = game:GetService("Players")
+local player = Players.LocalPlayer
+
+local MIN_SPEED = 1
+local MAX_SPEED = 1000000000
+local DEFAULT_SPEED = 16
+
+local function getCharacter()
+	return player.Character or player.CharacterAdded:Wait()
+end
+
+local function getHumanoid()
+	return getCharacter():WaitForChild("Humanoid")
+end
+
+-- GUI
+local gui = Instance.new("ScreenGui")
+gui.Name = "KiroSpeedGUI"
+gui.ResetOnSpawn = false
+gui.Parent = player:WaitForChild("PlayerGui")
+
+local main = Instance.new("Frame")
+main.Size = UDim2.new(0, 300, 0, 190)
+main.Position = UDim2.new(0.5, -150, 0.5, -95)
+main.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+main.BorderSizePixel = 0
+main.Parent = gui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 14)
+corner.Parent = main
+
+local stroke = Instance.new("UIStroke")
+stroke.Color = Color3.fromRGB(80, 80, 100)
+stroke.Thickness = 2
+stroke.Parent = main
+
+-- Title
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, 0, 0, 45)
+title.BackgroundTransparency = 1
+title.Text = "⚡ KIRO SPEED"
+title.TextColor3 = Color3.fromRGB(255, 255, 255)
+title.TextSize = 22
+title.Font = Enum.Font.GothamBold
+title.Parent = main
+
+-- Speed box
+local box = Instance.new("TextBox")
+box.Size = UDim2.new(1, -40, 0, 45)
+box.Position = UDim2.new(0, 20, 0, 55)
+box.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+box.TextColor3 = Color3.fromRGB(255, 255, 255)
+box.PlaceholderColor3 = Color3.fromRGB(150, 150, 160)
+box.PlaceholderText = "Enter speed (1 - 1B)"
+box.Text = tostring(DEFAULT_SPEED)
+box.TextSize = 18
+box.Font = Enum.Font.Gotham
+box.ClearTextOnFocus = false
+box.Parent = main
+
+local boxCorner = Instance.new("UICorner")
+boxCorner.CornerRadius = UDim.new(0, 10)
+boxCorner.Parent = box
+
+-- Apply button
+local apply = Instance.new("TextButton")
+apply.Size = UDim2.new(1, -40, 0, 45)
+apply.Position = UDim2.new(0, 20, 0, 110)
+apply.BackgroundColor3 = Color3.fromRGB(70, 100, 255)
+apply.Text = "APPLY SPEED"
+apply.TextColor3 = Color3.fromRGB(255, 255, 255)
+apply.TextSize = 17
+apply.Font = Enum.Font.GothamBold
+apply.Parent = main
+
+local applyCorner = Instance.new("UICorner")
+applyCorner.CornerRadius = UDim.new(0, 10)
+applyCorner.Parent = apply
+
+-- Status
+local status = Instance.new("TextLabel")
+status.Size = UDim2.new(1, -40, 0, 25)
+status.Position = UDim2.new(0, 20, 0, 160)
+status.BackgroundTransparency = 1
+status.Text = "Current Speed: 16"
+status.TextColor3 = Color3.fromRGB(180, 180, 190)
+status.TextSize = 13
+status.Font = Enum.Font.Gotham
+status.Parent = main
+
+-- Apply speed
+local function applySpeed()
+	local number = tonumber(box.Text)
+
+	if not number then
+		status.Text = "❌ Enter a valid number"
+		return
+	end
+
+	number = math.floor(number)
+
+	if number < MIN_SPEED then
+		number = MIN_SPEED
+	elseif number > MAX_SPEED then
+		number = MAX_SPEED
+	end
+
+	box.Text = tostring(number)
+
+	local humanoid = getHumanoid()
+	humanoid.WalkSpeed = number
+
+	status.Text = "Current Speed: " .. tostring(number)
+end
+
+apply.MouseButton1Click:Connect(applySpeed)
+
+box.FocusLost:Connect(function(enterPressed)
+	if enterPressed then
+		applySpeed()
+	end
+end)
+
+-- Keep speed after respawning
+player.CharacterAdded:Connect(function()
+	task.wait(0.5)
+
+	local number = tonumber(box.Text) or DEFAULT_SPEED
+	number = math.clamp(math.floor(number), MIN_SPEED, MAX_SPEED)
+
+	local humanoid = getHumanoid()
+	humanoid.WalkSpeed = number
+
+	status.Text = "Current Speed: " .. tostring(number)
+end)
